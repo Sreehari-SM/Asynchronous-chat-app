@@ -52,44 +52,12 @@ body {
   color: #999;
 }
 </style>
-<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
 </head>
 <body>
 
-<h2>{{room}} - DjChat</h2>
-
-<div id="display">
-
-<!-- <div class="container darker">
-  <b>Tom</b><p>Hello Everyone, How Are You Guys Doing?</p>
-  <span class="time-left">20th, April 2021</span>
-</div> -->
-
+<div align="center">
+    <h2>Django Chat</h2>
 </div>
-
-<script>
-$(document).ready(function(){
-
-setInterval(function(){
-    $.ajax({
-        type: 'GET',
-        url : "/getMessages/{{room}}/",
-        success: function(response){
-            console.log(response);
-            $("#display").empty();
-            for (var key in response.messages)
-            {
-                var temp="<div class='container darker'><b>"+response.messages[key].user+"</b><p>"+response.messages[key].value+"</p><span class='time-left'>"+response.messages[key].date+"</span></div>";
-                $("#display").append(temp);
-            }
-        },
-        error: function(response){
-            alert('An error occured')
-        }
-    });
-},1000);
-})
-</script>
 
 
 <div class="container">
@@ -124,39 +92,54 @@ setInterval(function(){
     background-color: #f2f2f2;
     padding: 20px;
     }
+    textarea {
+    width: 100%;
+    height: 150px;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    font-size: 16px;
+    resize: none;
+  }
     </style>
 
-    <form id="post-form">
-        {% csrf_token %}
-        <input type="hidden" name="username" id="username" value="{{username}}"/>
-        <input type="hidden" name="room_id" id="room_id" value="{{room_details.id}}"/>
-        <input type="text" name="message" id="message" width="100px" />
-        <input type="submit" value="Send">
+    <form>
+        <textarea name="" id="text-area" cols="60" rows="10" width="100"></textarea>
+        <!-- <input type="text" name="room_name" id="room_name" width="100px" /> -->
+        <input type="text" name="input" id="username" width="100px" placeholder="Enter your message here" />
+        <input type="submit" id="submit" value="Message send">
     </form>
 </div>
+{{room_name|json_script:"room-name"}}
+<script>
+
+  document.querySelector('#submit').onclick = function(e){
+    e.preventdefault()
+    const messageInput = document.querySelector('#input');
+    const message = messageInput.value
+    chatsocket.send(JSON.stringify({
+      'message': message
+    }))
+    messageInput.value = ''
+  }
+  const roomName = JSON.parse(document.getElementById('room-name').textContent);
+  console.log("7&&&&&&&&&&&&&&",roomName);
+  const chatsocket = new WebSocket(
+    'ws://'+
+    window.location.host+
+    '/ws/chat/'+
+    roomName+
+    '/'
+  )
+
+  chatsocket.onmessage = function(e){
+    const data = JSON.parse(e.data);
+    console.log('**************',data);
+    document.querySelector('#text-area').value += (data.message + '\n')
+  }
+</script>
 
 
 </body>
-
-<script type="text/javascript">
-  $(document).on('submit','#post-form',function(e){
-    e.preventDefault();
-
-    $.ajax({
-      type:'POST',
-      url:'/send',
-      data:{
-          username:$('#username').val(),
-          room_id:$('#room_id').val(),
-          message:$('#message').val(),
-        csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
-      },
-      success: function(data){
-         //alert(data)
-      }
-    });
-    document.getElementById('message').value = ''
-  });
-</script>
-
-</html>
