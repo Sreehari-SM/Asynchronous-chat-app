@@ -108,23 +108,26 @@ body {
     <form>
         <textarea name="" id="text-area" cols="60" rows="10" width="100"></textarea>
         <!-- <input type="text" name="room_name" id="room_name" width="100px" /> -->
-        <input type="text" name="input" id="username" width="100px" placeholder="Enter your message here" />
-        <input type="submit" id="submit" value="Message send">
+        <input type="text" name="input" id="input" width="100px" placeholder="Enter your message here" />
+        <input type="button" id="submit" value="Message send">
     </form>
 </div>
 {{room_name|json_script:"room-name"}}
+{{request.user.username|json_script:"user-name"}}
 <script>
+  const userName = JSON.parse(document.getElementById('user-name').textContent);
+  const roomName = JSON.parse(document.getElementById('room-name').textContent);
 
-  document.querySelector('#submit').onclick = function(e){
-    e.preventdefault()
-    const messageInput = document.querySelector('#input');
+  document.getElementById('submit').onclick = function(e){
+    const messageInput = document.getElementById('input');
     const message = messageInput.value
     chatsocket.send(JSON.stringify({
-      'message': message
-    }))
-    messageInput.value = ''
+      'message': message,
+      'user_name': userName
+    }));
+    messageInput.value = '';
   }
-  const roomName = JSON.parse(document.getElementById('room-name').textContent);
+  
   console.log("7&&&&&&&&&&&&&&",roomName);
   const chatsocket = new WebSocket(
     'ws://'+
@@ -136,8 +139,8 @@ body {
 
   chatsocket.onmessage = function(e){
     const data = JSON.parse(e.data);
-    console.log('**************',data);
-    document.querySelector('#text-area').value += (data.message + '\n')
+    console.log('**************',e.data);
+    document.querySelector('#text-area').value += (data.user_name + ":" +data.message + '\n')
   }
 </script>
 
