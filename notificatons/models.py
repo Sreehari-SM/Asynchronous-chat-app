@@ -4,6 +4,7 @@ from django.db import models
 
 class NotificationMessage(models.Model):
     title = models.CharField(max_length=128)
+    user_id = models.CharField(max_length=128, blank=True, null=True)
     description = models.TextField()
     scheduled_date = models.DateField(blank=True, null=True)
     scheduled_time = models.TimeField(blank=True, null=True)
